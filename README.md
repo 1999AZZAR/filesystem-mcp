@@ -2,6 +2,8 @@
 
 A comprehensive Model Context Protocol (MCP) server for advanced file system operations. This server provides structured file management capabilities including file operations, directory management, file watching, search functionality, and archiving operations.
 
+![Blotcat stamping cached metadata folders on a conveyor belt with a 5-minute TTL timer](assets/blotcat-caching.jpg)
+
 ## Table of Contents
 
 - [Features](#features)
@@ -339,6 +341,8 @@ Add this server to your Claude Desktop configuration (`claude_desktop_config.jso
 ```
 
 ## Available Tools
+
+![Blotcat operating a complex MCP switchboard with 18 tool sockets for read, write, watch, search, and archive](assets/blotcat-tools.jpg)
 
 This MCP server provides **18 powerful tools** for comprehensive file system management:
 
