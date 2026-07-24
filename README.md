@@ -647,6 +647,8 @@ Get directory size recursively.
 
 ### 3. Advanced Operations
 
+![Blotcat multitasking with a magnifying glass for fast search and a zipper-box archiver](assets/blotcat-advanced.jpg)
+
 #### `search_in_files` - Search in Files
 Search for text patterns in files.
 
