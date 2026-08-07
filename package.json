@@ -26,7 +26,7 @@
     "@modelcontextprotocol/sdk": "^1.18.0",
     "archiver": "^6.0.1",
     "chokidar": "^3.5.3",
-    "glob": "^10.3.10",
+    "glob": "^10.5.0",
     "mime-types": "^2.1.35",
     "unzipper": "^0.10.14",
     "zod": "^3.22.4"
