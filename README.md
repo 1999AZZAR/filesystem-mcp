@@ -1,7 +1,7 @@
 # FileSystem MCP Server
 
 
-> **Part of the [HeLa MCP Ecosystem](https://github.com/1999AZZAR/hela-mcp-ecosystem)** — This server is **HeLa Membrane (`hela-membrane`)** — the *Workspace FS* component of the HeLa cellular architecture. See the [ecosystem docs](https://github.com/1999AZZAR/hela-mcp-ecosystem) for profiles, workflows, and multi-client setup.
+> **Part of the [HeLa MCP Ecosystem](https://github.com/1999AZZAR/hela-hela-mcp-ecosystem)** — This server is **HeLa Membrane (`hela-membrane`)** — the *Workspace FS* component of the HeLa cellular architecture. See the [ecosystem docs](https://github.com/1999AZZAR/hela-hela-mcp-ecosystem) for profiles, workflows, and multi-client setup.
 
 A comprehensive Model Context Protocol (MCP) server for advanced file system operations. This server provides structured file management capabilities including file operations, directory management, file watching, search functionality, and archiving operations.
 
@@ -290,8 +290,8 @@ Generates cached preview of file content (first lines/chars) for quick inspectio
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/1999AZZAR/filesystem-mcp-server.git
-cd filesystem-mcp-server
+git clone https://github.com/1999AZZAR/filesystem-mcp.git
+cd filesystem-mcp
 ```
 
 2. **Install dependencies:**
@@ -320,7 +320,7 @@ Add this server to your Cursor MCP configuration (`~/.cursor/mcp.json`):
   "mcpServers": {
     "filesystem-mcp": {
       "command": "node",
-      "args": ["/path/to/filesystem-mcp-server/dist/index.js"],
+      "args": ["/path/to/filesystem-mcp/dist/index.js"],
       "env": {}
     }
   }
@@ -336,7 +336,7 @@ Add this server to your Claude Desktop configuration (`claude_desktop_config.jso
   "mcpServers": {
     "filesystem-mcp": {
       "command": "node",
-      "args": ["/path/to/filesystem-mcp-server/dist/index.js"],
+      "args": ["/path/to/filesystem-mcp/dist/index.js"],
       "env": {}
     }
   }
@@ -1005,7 +1005,7 @@ const archiveResult = await mcpClient.callTool('archive_files', {
 ### Project Structure
 
 ```
-filesystem-mcp-server/
+filesystem-mcp/
 ├── src/
 │   ├── index.ts              # Main entry point
 │   ├── server.ts             # MCP server implementation
@@ -1107,7 +1107,7 @@ MIT License - see LICENSE file for details.
 ## Support
 
 For issues and questions:
-- **GitHub Issues**: [Open an issue](https://github.com/1999AZZAR/filesystem-mcp-server/issues)
+- **GitHub Issues**: [Open an issue](https://github.com/1999AZZAR/filesystem-mcp/issues)
 - **Documentation**: Check this README for comprehensive usage examples
 - **Examples**: See the examples section above for common use cases
 
