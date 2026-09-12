@@ -10,6 +10,8 @@ import {
 import { FileOperations } from './file-operations.js';
 import { DirectoryOperations } from './directory-operations.js';
 import { AdvancedOperations } from './advanced-operations.js';
+import { loadWorkspacePolicy, policyCheck, type WorkspacePolicy } from './policy.js';
+import { textResult, errorResult } from './envelope.js';
 import {
   ReadFileSchema,
   WriteFileSchema,
@@ -32,6 +34,7 @@ import {
  */
 export class FileSystemMCPServer {
   private server: Server;
+  private readonly policy: WorkspacePolicy = loadWorkspacePolicy();
   private cache: Map<string, { data: any; timestamp: number; ttl: number }> = new Map();
   private readonly DEFAULT_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private readonly FILE_WATCH_CACHE_TTL = 30 * 1000; // 30 seconds for watch status
@@ -333,82 +336,77 @@ export class FileSystemMCPServer {
       const { name, arguments: args } = request.params;
 
       try {
+        await policyCheck(this.policy, name, (args || {}) as Record<string, unknown>);
         switch (name) {
           case 'read_file':
             const readResult = await FileOperations.readFile(ReadFileSchema.parse(args));
-            return { content: [{ type: 'text', text: JSON.stringify(readResult, null, 2) }] };
+            return textResult(name, readResult);
           
           case 'write_file':
             const writeResult = await FileOperations.writeFile(WriteFileSchema.parse(args));
-            return { content: [{ type: 'text', text: JSON.stringify(writeResult, null, 2) }] };
+            return textResult(name, writeResult);
           
           case 'copy_file':
             const copyResult = await FileOperations.copyFile(CopyFileSchema.parse(args));
-            return { content: [{ type: 'text', text: JSON.stringify(copyResult, null, 2) }] };
+            return textResult(name, copyResult);
           
           case 'move_file':
             const moveResult = await FileOperations.moveFile(MoveFileSchema.parse(args));
-            return { content: [{ type: 'text', text: JSON.stringify(moveResult, null, 2) }] };
+            return textResult(name, moveResult);
           
           case 'delete_file':
             const deleteResult = await FileOperations.deleteFile(DeleteFileSchema.parse(args));
-            return { content: [{ type: 'text', text: JSON.stringify(deleteResult, null, 2) }] };
+            return textResult(name, deleteResult);
           
           case 'get_file_info':
             const infoResult = await FileOperations.getFileInfo(GetFileInfoSchema.parse(args));
-            return { content: [{ type: 'text', text: JSON.stringify(infoResult, null, 2) }] };
+            return textResult(name, infoResult);
           
           case 'create_directory':
             const createDirResult = await DirectoryOperations.createDirectory(CreateDirectorySchema.parse(args));
-            return { content: [{ type: 'text', text: JSON.stringify(createDirResult, null, 2) }] };
+            return textResult(name, createDirResult);
           
           case 'list_directory':
             const listResult = await DirectoryOperations.listDirectory(ListDirectorySchema.parse(args));
-            return { content: [{ type: 'text', text: JSON.stringify(listResult, null, 2) }] };
+            return textResult(name, listResult);
           
           case 'find_files':
             const findResult = await DirectoryOperations.findFiles(FindFilesSchema.parse(args));
-            return { content: [{ type: 'text', text: JSON.stringify(findResult, null, 2) }] };
+            return textResult(name, findResult);
           
           case 'search_in_files':
             const searchResult = await AdvancedOperations.searchInFiles(SearchInFilesSchema.parse(args));
-            return { content: [{ type: 'text', text: JSON.stringify(searchResult, null, 2) }] };
+            return textResult(name, searchResult);
           
           case 'watch_file':
             const watchResult = await AdvancedOperations.watchFile(WatchFileSchema.parse(args));
-            return { content: [{ type: 'text', text: JSON.stringify(watchResult, null, 2) }] };
+            return textResult(name, watchResult);
           
           case 'stop_watching':
             const stopWatchResult = await AdvancedOperations.stopWatching(args?.['path'] as string);
-            return { content: [{ type: 'text', text: JSON.stringify(stopWatchResult, null, 2) }] };
+            return textResult(name, stopWatchResult);
           
           case 'compare_files':
             const compareResult = await AdvancedOperations.compareFiles(CompareFilesSchema.parse(args));
-            return { content: [{ type: 'text', text: JSON.stringify(compareResult, null, 2) }] };
+            return textResult(name, compareResult);
           
           case 'archive_files':
             const archiveResult = await AdvancedOperations.archiveFiles(ArchiveFilesSchema.parse(args));
-            return { content: [{ type: 'text', text: JSON.stringify(archiveResult, null, 2) }] };
+            return textResult(name, archiveResult);
           
           case 'extract_archive':
             const extractResult = await AdvancedOperations.extractArchive(args?.['archivePath'] as string, args?.['destination'] as string);
-            return { content: [{ type: 'text', text: JSON.stringify(extractResult, null, 2) }] };
+            return textResult(name, extractResult);
           
           case 'get_directory_size':
             const sizeResult = await DirectoryOperations.getDirectorySize(args?.['path'] as string);
-            return { content: [{ type: 'text', text: JSON.stringify(sizeResult, null, 2) }] };
+            return textResult(name, sizeResult);
           
           default:
             throw new Error(`Unknown tool: ${name}`);
         }
       } catch (error) {
-        return {
-          content: [{
-            success: false,
-            message: `Tool execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            error: error instanceof Error ? error.message : 'Unknown error'
-          }]
-        };
+        return errorResult(name, error instanceof Error ? error.message : 'Unknown error');
       }
     });
   }
