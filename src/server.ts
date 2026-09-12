@@ -12,6 +12,7 @@ import { DirectoryOperations } from './directory-operations.js';
 import { AdvancedOperations } from './advanced-operations.js';
 import { loadWorkspacePolicy, policyCheck, type WorkspacePolicy } from './policy.js';
 import { textResult, errorResult } from './envelope.js';
+import { HttpAdapter } from './http-adapter.js';
 import {
   ReadFileSchema,
   WriteFileSchema,
@@ -38,9 +39,15 @@ export class FileSystemMCPServer {
   private cache: Map<string, { data: any; timestamp: number; ttl: number }> = new Map();
   private readonly DEFAULT_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private readonly FILE_WATCH_CACHE_TTL = 30 * 1000; // 30 seconds for watch status
+  private httpAdapter?: HttpAdapter;
 
   constructor() {
-    this.server = new Server(
+    this.server = this.createMcpServer();
+    this.setupErrorHandling();
+  }
+
+  public createMcpServer(): Server {
+    const server = new Server(
       {
         name: 'filesystem-mcp-server',
         version: '1.0.0',
@@ -53,9 +60,9 @@ export class FileSystemMCPServer {
       }
     );
 
-    this.setupToolHandlers();
-    this.setupResourceHandlers();
-    this.setupErrorHandling();
+    this.setupToolHandlers(server);
+    this.setupResourceHandlers(server);
+    return server;
   }
 
   private getCacheKey(type: string, params: any): string {
@@ -83,9 +90,9 @@ export class FileSystemMCPServer {
   }
 
 
-  private setupToolHandlers(): void {
+  private setupToolHandlers(server: Server = this.server): void {
     // List available tools
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
+    server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
         tools: [
           {
@@ -332,7 +339,7 @@ export class FileSystemMCPServer {
     });
 
     // Handle tool calls
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
 
       try {
@@ -459,16 +466,16 @@ export class FileSystemMCPServer {
     ];
   }
 
-  private setupResourceHandlers(): void {
+  private setupResourceHandlers(server: Server = this.server): void {
     // List resources handler
-    this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    server.setRequestHandler(ListResourcesRequestSchema, async () => {
       return {
         resources: this.resources,
       };
     });
 
     // Read resource handler
-    this.server.setRequestHandler(ReadResourceRequestSchema, async (request: any) => {
+    server.setRequestHandler(ReadResourceRequestSchema, async (request: any) => {
       const { uri } = request.params;
 
       try {
@@ -880,9 +887,27 @@ export class FileSystemMCPServer {
     });
   }
 
-  async run(): Promise<void> {
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
-    console.error('FileSystem MCP Server running on stdio');
+  async run(options: { transport?: 'stdio' | 'http'; port?: number; host?: string } = {}): Promise<void> {
+    const envTransport = process.env['MCP_TRANSPORT'];
+    const transportMode = options.transport || (envTransport === 'http' ? 'http' : 'stdio');
+    if (transportMode === 'http') {
+      const envPort = process.env['PORT'];
+      const envHost = process.env['HOST'];
+      const port = options.port ?? (envPort ? parseInt(envPort, 10) : 8013);
+      const host = options.host ?? envHost ?? '0.0.0.0';
+      this.httpAdapter = new HttpAdapter(() => this.createMcpServer(), { port, host });
+      await this.httpAdapter.start();
+    } else {
+      const transport = new StdioServerTransport();
+      await this.server.connect(transport);
+      console.error('FileSystem MCP Server running on stdio');
+    }
+  }
+
+  async stop(): Promise<void> {
+    if (this.httpAdapter) {
+      await this.httpAdapter.close();
+    }
+    await AdvancedOperations.cleanup();
   }
 }
