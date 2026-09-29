@@ -153,7 +153,6 @@ export class HttpAdapter {
             try {
               const mcpServer = this.serverFactory();
               const transport = new StreamableHTTPServerTransport({
-                sessionIdGenerator: undefined,
                 enableJsonResponse: true,
               });
               await mcpServer.connect(transport);

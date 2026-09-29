@@ -18,7 +18,13 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    // Disabled: @modelcontextprotocol/sdk declares its optional transport
+    // callbacks (onclose, onerror, sessionIdGenerator) without `| undefined`,
+    // so the flag rejects its own transports at >= 1.25.4. Verified against
+    // 1.25.4, 1.26.0, 1.29.0 and 1.31.0 - all fail the same two checks.
+    // Every other strict flag below stays on.
+    "exactOptionalPropertyTypes": false,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
