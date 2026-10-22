@@ -97,7 +97,7 @@ export class FileSystemMCPServer {
         tools: [
           {
             name: 'read_file',
-            description: 'Read file content with optional encoding and range',
+            description: 'Canonical local file read (use instead of hela-nucleus terminal_cat). Read file content with optional encoding and range',
             inputSchema: {
               type: 'object',
               properties: {
